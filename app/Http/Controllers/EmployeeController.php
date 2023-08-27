@@ -75,24 +75,49 @@ class EmployeeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Employee $employee)
     {
-        //
+        $form = SpladeForm::make()->action(route('admin.employees.update', $employee))
+            ->method('PUT')
+            ->fields([
+                Input::make('first_name')->label('First Name'),
+                Input::make('last_name')->label('Last Name'),
+                Input::make('middle_name')->label('Middle Name'),
+                Input::make('zip_code')->label('Zip Code'),
+                Select::make('department_id')->label('Choose a Department')->options(Department::pluck('name', 'id')->toArray()),
+                Select::make('city_id')->label('Choose a City')->options(City::pluck('name', 'id')->toArray()),
+                Date::make('birth_date')->label('Birth Date'),
+                Date::make('hired_date')->label('Hired Date'),
+                Submit::make()->label('Save')
+            ])
+            ->fill($employee)->class('space-y-4 bg-white rounded p-4');
+        return view('admin.employees.edit', [
+            'form' => $form
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(CreateEmployeeRequest $request, Employee $employee)
     {
-        //
+        $city = City::findOrFail($request->city_id);
+        $employee->update(array_merge($request->validated(), [
+            'country_id' => $city->state->country_id,
+            'state_id' => $city->state_id,
+        ]));
+
+        Splade::toast('Employee Updated')->autoDismiss(3);
+        return to_route('admin.employees.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Employee $employee)
     {
-        //
+        $employee->delete();
+        Splade::toast('Employee Deleted')->autoDismiss(3);
+        return back();
     }
 }
