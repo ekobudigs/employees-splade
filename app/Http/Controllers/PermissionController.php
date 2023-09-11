@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Tables\Permissions;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 use ProtoneMedia\Splade\SpladeForm;
 use ProtoneMedia\Splade\Facades\Splade;
 use Spatie\Permission\Models\Permission;
@@ -25,19 +26,16 @@ class PermissionController extends Controller
 
     public function create()
     {
-        $form = SpladeForm::make()->action(route('admin.permissions.store'))
-            ->fields([
-                Input::make('name')->label('Name'),
-                Submit::make()->label('Save')
-            ])->class('space-y-4 bg-white rounded p-4');
+
         return view('admin.permissions.create', [
-            'form' => $form
+            'roles' => Role::pluck('name', 'id')->toArray()
         ]);
     }
 
     public function store(CreatePermissionRequest $request)
     {
-        Permission::create($request->validated());
+        $permission = Permission::create($request->validated());
+        $permission->syncRoles($request->roles);
         Splade::toast('permission Created')->autoDismiss(3);
         return to_route('admin.permissions.index');
     }
@@ -45,15 +43,11 @@ class PermissionController extends Controller
 
     public function edit(Permission $permission)
     {
-        $form = SpladeForm::make()->action(route('admin.permissions.update', $permission))
-            ->method('PUT')
-            ->fields([
-                Input::make('name')->label('Name'),
-                Submit::make()->label('Save')
-            ])->fill($permission)->class('space-y-4 bg-white rounded p-4');
+
 
         return view('admin.permissions.edit', [
-            'form' => $form
+            'permissions' => $permission,
+            'roles' => Role::pluck('name', 'id')->toArray()
         ]);
     }
 
@@ -63,6 +57,7 @@ class PermissionController extends Controller
     public function update(UpdatePermissionRequest $request, Permission $permission)
     {
         $permission->update($request->validated());
+        $permission->syncRoles($request->roles);
         Splade::toast('permission Updated')->autoDismiss(3);
         return to_route('admin.permissions.index');
     }

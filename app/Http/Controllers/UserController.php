@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Tables\Users;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
+use App\Http\Requests\StoreUserRequest;
 use ProtoneMedia\Splade\Facades\Splade;
+use App\Http\Requests\UpdateUserRequest;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
@@ -26,7 +28,10 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('admin.users.create');
+        return view('admin.users.create', [
+            'permissions' => Permission::pluck('name', 'id')->toArray(),
+            'roles' => Role::pluck('name', 'id')->toArray(),
+        ]);
     }
 
     /**
@@ -35,7 +40,9 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         // dd($request->all());
-        User::create($request->validated());
+        $user = User::create($request->validated());
+        $user->syncRoles($request->roles);
+        $user->syncPermissions($request->permissions);
         Splade::toast('User Created')->autoDismiss(3);
         return to_route('admin.users.index');
     }
@@ -53,7 +60,11 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        return view('admin.users.edit', [
+            'permissions' => Permission::pluck('name', 'id')->toArray(),
+            'roles' => Role::pluck('name', 'id')->toArray(),
+            'user' => $user
+        ]);
     }
 
     /**
@@ -63,6 +74,8 @@ class UserController extends Controller
     {
         // dd($request->all());
         $user->update($request->validated());
+        $user->syncRoles($request->roles);
+        $user->syncPermissions($request->permissions);
         Splade::toast('User Updated')->autoDismiss(3);
         return to_route('admin.users.index');
     }

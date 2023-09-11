@@ -6,6 +6,21 @@ composer require spatie/laravel-query-builder
 php artisan vendor:publish --provider="Spatie\QueryBuilder\QueryBuilderServiceProvider" --tag="query-builder-config"
 
 
+install laravel permision
+
+https://spatie.be/docs/laravel-permission/v5/installation-laravel
+
+composer require spatie/laravel-permission
+
+
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+
+
+ php artisan optimize:clear
+ # or
+ php artisan config:clear
+
+ php artisan migrate
 
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>

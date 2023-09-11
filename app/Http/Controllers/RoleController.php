@@ -11,6 +11,7 @@ use App\Http\Requests\CreateRolesRequest;
 use App\Http\Requests\UpdateRolesRequest;
 use ProtoneMedia\Splade\FormBuilder\Input;
 use ProtoneMedia\Splade\FormBuilder\Submit;
+use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
@@ -24,34 +25,27 @@ class RoleController extends Controller
 
     public function create()
     {
-        $form = SpladeForm::make()->action(route('admin.roles.store'))
-            ->fields([
-                Input::make('name')->label('Name'),
-                Submit::make()->label('Save')
-            ])->class('space-y-4 bg-white rounded p-4');
+
         return view('admin.roles.create', [
-            'form' => $form
+            'permissions' => Permission::pluck('name', 'id')->toArray()
         ]);
     }
 
     public function store(CreateRolesRequest $request)
     {
-        Role::create($request->validated());
+        $role = Role::create($request->validated());
+        $role->syncPermissions($request->permissions);
         Splade::toast('Role Created')->autoDismiss(3);
         return to_route('admin.roles.index');
     }
 
     public function edit(Role $role)
     {
-        $form = SpladeForm::make()->action(route('admin.roles.update', $role))
-            ->method('PUT')
-            ->fields([
-                Input::make('name')->label('Name'),
-                Submit::make()->label('Save')
-            ])->fill($role)->class('space-y-4 bg-white rounded p-4');
+
 
         return view('admin.roles.edit', [
-            'form' => $form
+            'role' => $role,
+            'permissions' =>  Permission::pluck('name', 'id')->toArray()
         ]);
     }
 
@@ -61,6 +55,7 @@ class RoleController extends Controller
     public function update(UpdateRolesRequest $request, Role $role)
     {
         $role->update($request->validated());
+        $role->syncPermissions($request->permissions);
         Splade::toast('role Updated')->autoDismiss(3);
         return to_route('admin.roles.index');
     }
