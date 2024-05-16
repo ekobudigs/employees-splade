@@ -50,7 +50,8 @@ Route::middleware('splade')->group(function () {
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
 
-    Route::middleware(['auth', 'role:admin'])->prefix('/admin')->name('admin.')->group(function () {
+    Route::middleware(['auth'])->prefix('/admin')->name('admin.')->group(function () {
+        // Route::middleware(['auth', 'role:admin'])->prefix('/admin')->name('admin.')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
         Route::resource('/users', UserController::class);
         Route::resource('/employees', EmployeeController::class);
@@ -60,7 +61,6 @@ Route::middleware('splade')->group(function () {
         Route::resource('/departments', DepartmentController::class);
         Route::resource('/roles', RoleController::class);
         Route::resource('/permissions', PermissionController::class);
-
     });
 
     require __DIR__ . '/auth.php';
